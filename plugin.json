@@ -1,0 +1,22 @@
+{
+  "id": "neodex.plusmoins",
+  "name": "Plus ou Moins",
+  "version": "1.0.0",
+  "author": "NDesumeur",
+  "description": "Jeu de culture : la carte de gauche montre son chiffre, devine si celle de droite est plus haute ou plus basse. Huit catégories de vrais chiffres arrondis : population des pays, altitude des montagnes, longueur des fleuves, poids des animaux, hauteur des monuments, taille des astres, année des inventions et habitants des villes de France. Ou tout mélangé. Meilleure série par catégorie.",
+  "icon": "icon.png",
+  "entry": "index.js",
+  "view": "plusmoins",
+  "neobase": ">=4.0.0",
+  "type": "app",
+  "category": "Jeux",
+  "syncMode": "progression",
+  "syncInfo": "Record.",
+  "mobile": false,
+  "system": false,
+  "dependencies": {},
+  "sdk": "2.1.0",
+  "permissions": [
+    "storage"
+  ]
+}
