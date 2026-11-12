@@ -13,7 +13,7 @@ A pixel art trivia game: the left card shows its number, and you guess whether t
 ## How it works
 
 - A right answer moves the right card to the left and a new one comes in. A mistake ends the streak.
-- **Eight categories** of real rounded numbers: population of countries, height of mountains, length of rivers, weight of animals, height of monuments, size of celestial bodies, year of inventions and population of French cities.
+- **Fourteen categories** of real rounded numbers: population and area of countries, height of mountains, length of rivers, weight, speed and lifespan of animals, height of monuments, size of celestial bodies, year of inventions, population of French cities, calories in foods, birth year of famous people and release year of video games.
 - **All mixed** changes category every 5 right answers.
 - Two cards that are too close never come up together: there is always a real difference.
 

@@ -13,7 +13,7 @@ Un jeu de culture en pixel art : la carte de gauche montre son chiffre, à toi d
 ## Comment ça marche
 
 - Une bonne réponse, la carte de droite passe à gauche et une nouvelle arrive. Une erreur, et la série s'arrête.
-- **Huit catégories** de vrais chiffres arrondis : population des pays, altitude des montagnes, longueur des fleuves, poids des animaux, hauteur des monuments, taille des astres, année des inventions et habitants des villes de France.
+- **Quatorze catégories** de vrais chiffres arrondis : population et superficie des pays, altitude des montagnes, longueur des fleuves, poids, vitesse et longévité des animaux, hauteur des monuments, taille des astres, année des inventions, habitants des villes de France, calories des aliments, naissance de personnages célèbres et sortie des jeux vidéo.
 - **Tout mélangé** change de catégorie toutes les 5 bonnes réponses.
 - Deux cartes trop proches ne tombent jamais ensemble : il y a toujours une vraie différence.
 
