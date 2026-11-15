@@ -17,6 +17,16 @@ Un jeu de culture en pixel art : la carte de gauche montre son chiffre, à toi d
 - **Tout mélangé** change de catégorie toutes les 5 bonnes réponses.
 - Deux cartes trop proches ne tombent jamais ensemble : il y a toujours une vraie différence.
 
+## Les cartes
+
+Chaque carte a sa petite image en pixel art : le **drapeau** du pays, le profil de la **montagne** (avec son cratère pour les volcans), le **fleuve** qui serpente, l'**animal**, le **monument** ou l'**astre**. Les autres catégories gardent leur icône. L'image ne dit jamais la réponse.
+
+Quand la partie est perdue, le résultat s'affiche dans un bandeau sous les cartes : les deux cartes et leurs valeurs restent lisibles.
+
+## Plein écran
+
+Le bouton **Plein écran** agrandit les cartes à tout l'écran (Échap pour en sortir). Hors plein écran, le jeu prend toute la hauteur que laisse la fenêtre.
+
 ## Statistiques
 
 Le panneau Records garde ta **meilleure série** dans chaque catégorie, le nombre de **parties** et de **bonnes réponses**.

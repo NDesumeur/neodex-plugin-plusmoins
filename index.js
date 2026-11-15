@@ -5,13 +5,15 @@ const HTML = `<div class="appWrap wide">
   <div class="gMain"><div class="gameBox"><canvas id="pmCanvas" width="192" height="160" role="img" aria-label="Plus ou Moins"></canvas></div>
     <div class="gSide">
       <div class="sysCard"><b>RECORDS</b><div class="gStats" id="pmStats"></div></div>
-      <div class="row"><button class="btn main" id="pmNew">NOUVELLE PARTIE</button></div>
+      <div class="row"><button class="btn main" id="pmNew">NOUVELLE PARTIE</button><button class="btn" id="pmFs">PLEIN ÉCRAN</button></div>
       <div class="hint">La carte de gauche montre son chiffre. Celle de droite est-elle au-dessus ou en dessous ? Une bonne réponse, elle passe à gauche et une nouvelle carte arrive ; une erreur, et la série s'arrête. Choisis une catégorie ci-dessous, ou « Tout mélangé » qui change de sujet toutes les 5 bonnes réponses. Les chiffres sont arrondis ; deux cartes trop proches ne tombent jamais ensemble.</div>
     </div></div>
 </div>`;
 const CSS = `.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
-.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;flex:0 0 auto;position:relative}
-.gameBox canvas{height:min(72vh,600px);width:auto;aspect-ratio:192/160;image-rendering:pixelated;cursor:var(--cp,pointer);touch-action:none}
+.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;flex:1 1 360px;min-width:min(100%,320px);position:relative}
+.gameBox:fullscreen{padding:0}
+.gameBox:fullscreen canvas{width:min(100vw,calc(100vh * 192 / 160))}
+.gameBox canvas{width:min(100%,max(280px,calc((100vh - 170px) * 192 / 160)));height:auto;aspect-ratio:192/160;image-rendering:pixelated;cursor:var(--cp,pointer);touch-action:none}
 .gSide{display:flex;flex-direction:column;gap:14px;flex:1;min-width:250px;max-width:420px}
 .gSide .sysCard{display:flex;flex-direction:column}
 .gStats{display:grid;grid-template-columns:1fr auto;gap:4px 14px}
@@ -355,6 +357,163 @@ const PM_ICONS = {  // 12 x 12, palette de la carte
   pad: ['............', '............', '.kkkkkkkkkk.', 'kmmmmmmmmmmk', 'kmkmmmmmmrmk', 'kkkkmmmmrmrk', 'kmkmmmmmmrmk', 'kmmmmmmmmmmk', 'kmmmkkkkmmmk', '.kkk....kkk.', '............', '............'],
 };
 const PM_ICON = Object.fromEntries(Object.entries(PM_ICONS).map(([k, rows]) => { const c = el('canvas'); c.width = c.height = 12; sprite(c.getContext('2d'), rows, 0, 0, {k: '#1a1018', b: '#3a7ad8', g: '#4aa84a', w: '#ffffff', m: '#8a7a6a', o: '#e8a84a', O: '#a86a2a', y: '#ffd84a', r: '#c83a3a'}); return [k, c]; }));
+// les petites images des cartes, 28 x 18 pixels : drapeaux, montagnes, fleuves, animaux, monuments, astres ; l'icône de la catégorie pour les autres
+// (aucune image ne dépend de la valeur : elle ne donne jamais la réponse)
+const PM_FLAGS = {  // [sens des bandes, couleurs, poids des bandes], puis un détail dessiné par-dessus
+  'Chine': ['h', ['#de2910'], 0, 'star5'], 'Inde': ['h', ['#ff9933', '#ffffff', '#138808'], 0, 'chakra'], 'États-Unis': ['us'], 'Indonésie': ['h', ['#ce1126', '#ffffff']],
+  'Pakistan': ['v', ['#ffffff', '#01411c'], [1, 3], 'crescentW'], 'Nigeria': ['v', ['#008751', '#ffffff', '#008751']], 'Brésil': ['h', ['#009c3b'], 0, 'brazil'], 'Bangladesh': ['h', ['#006a4e'], 0, 'redDisc'],
+  'Russie': ['h', ['#ffffff', '#0039a6', '#d52b1e']], 'Mexique': ['v', ['#006847', '#ffffff', '#ce1126'], 0, 'eagle'], 'Japon': ['h', ['#ffffff'], 0, 'sun'], 'Éthiopie': ['h', ['#078930', '#fcdd09', '#da121a'], 0, 'blueDisc'],
+  'Philippines': ['h', ['#0038a8', '#ce1126'], 0, 'triangle'], 'Égypte': ['h', ['#ce1126', '#ffffff', '#000000'], 0, 'gold'], 'Viêt Nam': ['h', ['#da251d'], 0, 'star5'], 'Iran': ['h', ['#239f40', '#ffffff', '#da0000']],
+  'Turquie': ['h', ['#e30a17'], 0, 'crescentT'], 'Allemagne': ['h', ['#000000', '#dd0000', '#ffce00']], 'France': ['v', ['#002395', '#ffffff', '#ed2939']], 'Royaume-Uni': ['uk'],
+  'Italie': ['v', ['#009246', '#ffffff', '#ce2b37']], 'Espagne': ['h', ['#aa151b', '#f1bf00', '#aa151b'], [1, 2, 1]], 'Algérie': ['v', ['#006233', '#ffffff'], 0, 'crescentR'], 'Canada': ['v', ['#ff0000', '#ffffff', '#ff0000'], [1, 2, 1], 'leaf'],
+  'Maroc': ['h', ['#c1272d'], 0, 'starG'], 'Australie': ['au'], 'Belgique': ['v', ['#000000', '#fae042', '#ed2939']], 'Portugal': ['v', ['#006600', '#ff0000'], [2, 3], 'sphere'], 'Suisse': ['h', ['#d52b1e'], 0, 'cross'],
+  'Islande': ['nordic', ['#02529c', '#ffffff', '#dc1e35']], 'Suède': ['nordic', ['#006aa7', '#fecc00', '#fecc00']], 'Grèce': ['gr'], 'Argentine': ['h', ['#74acdf', '#ffffff', '#74acdf'], 0, 'sunY'],
+  'Kazakhstan': ['h', ['#00afca'], 0, 'sunY'], 'Arabie saoudite': ['h', ['#006c35'], 0, 'script'], 'Mongolie': ['v', ['#c4272f', '#015197', '#c4272f'], 0, 'soyombo'], 'Pérou': ['v', ['#d91023', '#ffffff', '#d91023']],
+  'Chili': ['cl'], 'Luxembourg': ['h', ['#ed2939', '#ffffff', '#00a1de']], 'Monaco': ['h', ['#ce1126', '#ffffff']],
+};
+function pmFlag(g, name) {
+  const W = 26, H = 16, x0 = 1, y0 = 1, F = PM_FLAGS[name] || ['h', ['#8a7a6a']], [kind, cols, wts] = F, deco = F[3];
+  const band = (cols, wts, vert) => { const t = (wts || cols.map(() => 1)), sum = t.reduce((a, b) => a + b, 0); let o = 0; cols.forEach((c, i) => { const n = Math.round((o + t[i]) / sum * (vert ? W : H)) - Math.round(o / sum * (vert ? W : H)); if (vert) px(g, c, x0 + Math.round(o / sum * W), y0, n, H); else px(g, c, x0, y0 + Math.round(o / sum * H), W, n); o += t[i]; }); };
+  if (kind === 'h' || kind === 'v') band(cols, wts, kind === 'v');
+  else if (kind === 'nordic') { px(g, cols[0], x0, y0, W, H); px(g, cols[1], x0 + 7, y0, 4, H); px(g, cols[1], x0, y0 + 6, W, 4); px(g, cols[2], x0 + 8, y0, 2, H); px(g, cols[2], x0, y0 + 7, W, 2); }
+  else if (kind === 'us') { for (let i = 0; i < 8; i++) px(g, i % 2 ? '#ffffff' : '#b22234', x0, y0 + i * 2, W, 2); px(g, '#3c3b6e', x0, y0, 11, 8); for (let y = 1; y < 8; y += 2) for (let x = 1; x < 11; x += 2) px(g, '#ffffff', x0 + x, y0 + y); }
+  else if (kind === 'uk' || kind === 'au') {
+    const ux = x0, uy = y0, uw = kind === 'uk' ? W : 13, uh = kind === 'uk' ? H : 8;
+    if (kind === 'au') { px(g, '#012169', x0, y0, W, H); for (const [x, y] of [[19, 3], [22, 7], [18, 10], [20, 13], [6, 12]]) { px(g, '#ffffff', x0 + x, y0 + y - 1, 1, 3); px(g, '#ffffff', x0 + x - 1, y0 + y, 3, 1); } }
+    px(g, '#012169', ux, uy, uw, uh);
+    for (let i = 0; i < uw; i++) { const y = Math.round(i * (uh - 1) / (uw - 1)); px(g, '#ffffff', ux + i, uy + y - 1, 1, 3); px(g, '#ffffff', ux + i, uy + uh - 1 - y - 1, 1, 3); px(g, '#c8102e', ux + i, uy + y, 1, 1); px(g, '#c8102e', ux + i, uy + uh - 1 - y, 1, 1); }
+    px(g, '#012169', ux, uy - 1, uw, 1); px(g, '#012169', ux, uy + uh, uw, 1);
+    px(g, '#ffffff', ux + Math.floor(uw / 2) - 2, uy, 5, uh); px(g, '#ffffff', ux, uy + Math.floor(uh / 2) - 2, uw, 5); px(g, '#c8102e', ux + Math.floor(uw / 2) - 1, uy, 3, uh); px(g, '#c8102e', ux, uy + Math.floor(uh / 2) - 1, uw, 3);
+  }
+  else if (kind === 'gr') { for (let i = 0; i < 9; i++) px(g, i % 2 ? '#ffffff' : '#0d5eaf', x0, y0 + Math.round(i * H / 9), W, Math.round((i + 1) * H / 9) - Math.round(i * H / 9)); px(g, '#0d5eaf', x0, y0, 10, 9); px(g, '#ffffff', x0 + 4, y0, 2, 9); px(g, '#ffffff', x0, y0 + 4, 10, 2); }
+  else if (kind === 'cl') { px(g, '#ffffff', x0, y0, W, 8); px(g, '#d52b1e', x0, y0 + 8, W, 8); px(g, '#0039a6', x0, y0, 9, 8); px(g, '#ffffff', x0 + 4, y0 + 2, 1, 4); px(g, '#ffffff', x0 + 2, y0 + 3, 5, 2); }
+  const cx = x0 + W / 2, cy = y0 + H / 2, disc = (x, y, r, c) => { for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) if (i * i + j * j <= r * r + r * .6) px(g, c, x + i, y + j); };
+  const star = (x, y, c) => { px(g, c, x, y - 2, 1, 5); px(g, c, x - 2, y, 5, 1); px(g, c, x - 1, y - 1, 3, 3); px(g, c, x - 2, y + 2); px(g, c, x + 2, y + 2); };
+  ({
+    star5: () => { star(x0 + 5, y0 + 4, '#ffde00'); if (name === 'Chine') for (const [x, y] of [[9, 2], [10, 4], [10, 6], [9, 8]]) px(g, '#ffde00', x0 + x, y0 + y); if (name === 'Viêt Nam') { star(cx, cy, '#ffff00'); px(g, '#da251d', x0 + 3, y0 + 2, 5, 6); } },
+    chakra: () => { disc(cx, cy, 2, '#000080'); px(g, '#ffffff', cx, cy); },
+    crescentW: () => { disc(x0 + 16, cy, 4, '#ffffff'); disc(x0 + 17, cy - 1, 4, '#01411c'); star(x0 + 18, y0 + 6, '#ffffff'); },
+    crescentT: () => { disc(x0 + 9, cy, 5, '#ffffff'); disc(x0 + 11, cy, 4, '#e30a17'); star(x0 + 16, cy, '#ffffff'); },
+    crescentR: () => { disc(cx, cy, 5, '#d21034'); for (let j = -4; j <= 4; j++) for (let i = -4; i <= 4; i++) if (i * i + j * j <= 18) px(g, cx + 2 + i < x0 + 13 ? '#006233' : '#ffffff', cx + 2 + i, cy + j); star(cx + 3, cy, '#d21034'); },
+    brazil: () => { for (let j = 0; j < 12; j++) { const w = 22 - Math.abs(j - 5.5) * 3.6; px(g, '#ffdf00', cx - w / 2, y0 + 2 + j, w, 1); } disc(cx, cy, 4, '#002776'); px(g, '#ffffff', cx - 4, cy, 9, 1); },
+    redDisc: () => disc(cx - 2, cy, 5, '#f42a41'), sun: () => disc(cx, cy, 5, '#bc002d'), blueDisc: () => { disc(cx, cy, 4, '#0f47af'); star(cx, cy, '#fcdd09'); },
+    eagle: () => { disc(cx, cy, 2, '#8a5a2a'); px(g, '#2a7a3a', cx - 2, cy + 3, 5, 1); },
+    triangle: () => { for (let j = 0; j < H; j++) px(g, '#ffffff', x0, y0 + j, Math.round(13 - Math.abs(j - 7.5) * 1.7), 1); disc(x0 + 4, cy, 1, '#fcd116'); },
+    gold: () => { px(g, '#c09300', cx - 1, cy - 2, 3, 4); },
+    leaf: () => { px(g, '#ff0000', cx - 1, cy - 5, 2, 10); px(g, '#ff0000', cx - 4, cy - 2, 8, 4); px(g, '#ff0000', cx - 3, cy - 4, 6, 2); px(g, '#ff0000', cx - 5, cy - 1, 10, 2); },
+    starG: () => { for (const [a, b] of [[0, -4], [3, 3], [-4, -1], [4, -1], [-3, 3], [0, -4]].reduce((acc, p, i, arr) => i ? [...acc, [arr[i - 1], p]] : acc, [])) for (let k = 0; k <= 8; k++) px(g, '#006233', cx + a[0] + (b[0] - a[0]) * k / 8, cy + a[1] + (b[1] - a[1]) * k / 8); },
+    sphere: () => { disc(x0 + 10, cy, 3, '#ffcc00'); px(g, '#ffffff', x0 + 9, cy - 1, 3, 3); px(g, '#003399', x0 + 10, cy, 1, 1); },
+    cross: () => { px(g, '#ffffff', cx - 1, cy - 5, 3, 10); px(g, '#ffffff', cx - 5, cy - 1, 10, 3); },
+    sunY: () => { disc(cx, cy, 2, name === 'Argentine' ? '#f6b40e' : '#fec50c'); for (const [i, j] of [[0, -4], [0, 4], [-4, 0], [4, 0], [-3, -3], [3, 3], [-3, 3], [3, -3]]) px(g, name === 'Argentine' ? '#f6b40e' : '#fec50c', cx + i, cy + j); if (name === 'Kazakhstan') for (let j = 0; j < H; j += 2) px(g, '#fec50c', x0 + 2, y0 + j, 1, 1); },
+    script: () => { for (let x = 6; x < 21; x += 2) px(g, '#ffffff', x0 + x, y0 + 5 + (x % 4 ? 1 : 0), 1, 2); px(g, '#ffffff', x0 + 6, y0 + 11, 15, 1); },
+    soyombo: () => { px(g, '#f9cf02', x0 + 3, y0 + 3, 3, 1); disc(x0 + 4, y0 + 6, 1, '#f9cf02'); px(g, '#f9cf02', x0 + 3, y0 + 9, 3, 5); },
+  })[deco]?.();
+}
+const pmShade = (c, k) => '#' + [1, 3, 5].map(i => Math.max(0, Math.min(255, Math.round(parseInt(c.substr(i, 2), 16) * k)))).map(v => v.toString(16).padStart(2, '0')).join('');
+const pmHash = s => { let h = 7; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0; return h; };
+const PM_VOLC = ['Kilimandjaro', 'Mauna Kea', 'Mont Fuji', 'Teide', 'Etna', 'Puy de Dôme', 'Elbrouz'];
+function pmMountain(g, name) {  // ciel, une montagne au profil tiré du nom, neige au sommet (cratère pour les volcans)
+  const r = seeded(pmHash(name)), volc = PM_VOLC.includes(name), sky = r() < .5 ? '#7ec8f0' : '#a8d8f8';
+  px(g, sky, 1, 1, 26, 16);
+  const peak = 3 + Math.floor(r() * 3), px0 = 8 + Math.floor(r() * 12), slopeL = .8 + r() * .7, slopeR = .8 + r() * .7;
+  px(g, '#6a8a5a', 1, 13, 26, 4); if (r() < .6) { const h2 = peak + 4; for (let x = 1; x < 27; x++) { const top = h2 + Math.abs(x - (px0 > 14 ? 5 : 22)) * 1.1; if (top < 16) px(g, '#5a6a8a', x, top, 1, 16 - top); } }
+  for (let x = 1; x < 27; x++) {
+    let top = peak + (x < px0 ? (px0 - x) * slopeL : (x - px0) * slopeR) + (r() < .3 ? 1 : 0); if (volc && Math.abs(x - px0) <= 1) top = peak + 1;
+    if (top >= 17) continue; top = Math.round(top);
+    px(g, x < px0 ? '#8a7a6a' : '#6a5a4a', x, top, 1, 17 - top);
+    if (top < peak + 4) px(g, '#ffffff', x, top, 1, Math.min(3, peak + 4 - top));
+  }
+  if (volc && name !== 'Puy de Dôme') { px(g, '#4a3a2a', px0 - 1, peak + 1, 3, 1); if (name === 'Etna') { px(g, '#c8c8d0', px0, peak - 2, 2, 2); px(g, '#e0e0e8', px0 + 1, peak - 4, 2, 2); } }
+}
+function pmRiver(g, name) {  // une vallée vue d'en haut, le fleuve qui serpente selon son nom
+  const r = seeded(pmHash(name)), land = ['#5aa84a', '#c8a85a', '#7ab85a'][Math.floor(r() * 3)], a = 2 + r() * 3, f = .25 + r() * .25, ph = r() * 6;
+  px(g, land, 1, 1, 26, 16); for (let i = 0; i < 10; i++) px(g, pmShade(land, .8), 1 + Math.floor(r() * 26), 1 + Math.floor(r() * 16), 2, 1);
+  for (let x = 1; x < 27; x++) { const y = 9 + Math.sin(x * f + ph) * a; px(g, '#2a6ad8', x, Math.round(y) - 1, 1, 3); px(g, '#7ab8ff', x, Math.round(y) - 1, 1, 1); }
+  if (r() < .5) { const x = 4 + Math.floor(r() * 18); px(g, '#8a8a8a', x, 1, 2, 16); }  // un pont
+}
+const PM_ASTRES = {Soleil: ['#ffd84a', '#ff9a2a', 'rays'], Jupiter: ['#d8b088', '#a86a4a', 'bands'], Saturne: ['#e8d098', '#b8985a', 'ring'], Uranus: ['#9ae8f0', '#6ac0d0', 'ring'], Terre: ['#3a7ad8', '#4aa84a', 'earth'], Mars: ['#d8603a', '#a8402a'],
+  Ganymède: ['#a89888', '#786858'], Mercure: ['#9a9a9a', '#6a6a6a'], Lune: ['#d8d8d8', '#a8a8a8'], 'Europe (lune)': ['#e8dcc0', '#a8805a', 'lines'], Triton: ['#e0d0d8', '#a898a8'], Pluton: ['#d8b898', '#f0e8e0'],
+  Cérès: ['#8a8a8a', '#5a5a5a'], Vénus: ['#f0d898', '#d8b068'], Titan: ['#e8a84a', '#c8882a'], Neptune: ['#3a5ad8', '#2a3aa8'], Io: ['#f0e05a', '#d8a02a'], Callisto: ['#6a5a4a', '#a8988a']};
+function pmAstre(g, name) {
+  const [c1, c2, kind] = PM_ASTRES[name] || ['#9a9a9a', '#6a6a6a'], cx = 14, cy = 9, R = 6;
+  px(g, '#0b0820', 1, 1, 26, 16); const r = seeded(pmHash(name)); for (let i = 0; i < 12; i++) px(g, '#5a4a8a', 1 + Math.floor(r() * 26), 1 + Math.floor(r() * 16));
+  if (kind === 'rays') for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; px(g, '#ffd84a', cx + Math.round(Math.cos(a) * 8), cy + Math.round(Math.sin(a) * 8), 1, 1); }
+  if (kind === 'ring') px(g, pmShade(c2, .8), cx - 11, cy, 23, 1);
+  for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) if (i * i + j * j <= R * R + 2) {
+    let c = i + j > 3 ? c2 : c1;
+    if (kind === 'bands' && (j + 7) % 3 === 0) c = c2; if (kind === 'earth' && (r() < .35)) c = '#4aa84a'; if (kind === 'lines' && (i - j) % 4 === 0) c = c2; if (!kind && r() < .12) c = pmShade(c1, .75);
+    px(g, c, cx + i, cy + j);
+  }
+  if (kind === 'ring') { px(g, c2, cx - 11, cy - 1, 5, 1); px(g, c2, cx + 7, cy - 1, 5, 1); }
+}
+// animaux : 9 silhouettes de 14 x 9 (agrandies par 2), colorées par animal ; « m » : marque (rayures, taches), « e » : œil
+const PM_BEAST = {
+  quad: ['..............', '..........bb..', '.........bbbb.', '.bbbbbbbbbbbeb', 'bbbbmbbmbbbbb.', 'b.bbbbmbbbbb..', '..bbbbbbbbb...', '..b.b...b.b...', '..b.b...b.b...'],
+  big: ['..............', '...bbbbbbbb...', '..bbbbbbbbbbb.', '.bbbbbbbbbbbeb', '.bbbbbbbbbbbbb', '.bbbbbbbbbbbb.', '.bbbbbbbbbbb..', '.bbb.bbb.bbb..', '.bbb.bbb.bbb..'],
+  trunk: ['...bbbbbb.....', '..bbbbbbbbb...', '.bbbbbbbbbbbb.', '.bbbbbbbbbbeb.', '.bbbbbbbbbbbbb', '.bbbbbbbbbb.bb', '.bbbbbbbbbb..b', '.bb.bb.bb.b..b', '.bb.bb.bb.b...'],
+  neck: ['...........bb.', '..........bbeb', '..........bb..', '.........bb...', '...bbbbbbbb...', '..bbmbbmbbb...', '..bbbbbmbbb...', '..b.b...b.b...', '..b.b...b.b...'],
+  whale: ['..............', '..............', '.....bbbbbbbb.', 'b...bbbbbbbbbb', 'bb.bbbbbbbbbeb', 'bbbbbbbbbbbbbb', 'bb.mmmmmmmmmm.', 'b....mmmmmm...', '..............'],
+  bird: ['........bb....', '.......bbeb...', '.......bbbmm..', '..bbbbbbbb....', '.bbbbbbbbb....', '..bbbbbbb.....', '....m..m......', '....m..m......', '...mm.mm......'],
+  ape: ['.....bbbb.....', '....bbbbbb....', '....bmemmb....', '....bmmmmb....', '..bbbbbbbbbb..', '.bb.bbbbbb.bb.', '.b..bbbbbb..b.', '....bb..bb....', '...bbb..bbb...'],
+  small: ['..............', '..............', '..........bb..', '.........bbbb.', '...bbbbbbbbeb.', '..bbbbbbbbbbbm', '.bbbbbbbbbbb..', '..b.b...b.b...', '..............'],
+  shell: ['..............', '......bbbb....', '....bbmbbmbb..', '...bmbbbbbbmb.', '...bbbbmbbbbb.', '..mbbbbbbbbbmm', '.mmmmmmmmmmmmme', '..m.m....m.m..', '..............'],
+  snail: ['..............', '.....bbbb.....', '....bmmmmb....', '...bmbbbbmb..m', '...bmbmmbmb.m.', '...bmbbbbmbm..', '...bbbbbbbbm..', 'mmmmmmmmmmmmme', '..............'],
+  bee: ['..............', '....ww..ww....', '....www.www...', '....wwwwww....', '..bmbmbmbbb...', '.bbmbmbmbbbe..', '..bmbmbmbbb...', '...m.m..m.....', '..............'],
+  fish: ['..............', '......bbbb....', '.b..bbbbbbbb..', '.bbbbbbbbbbbb.', '.bbbbbbbbbbbeb', '.bbbmmmmmmmmm.', '.b...mmmmmm...', '..............', '..............'],
+  human: ['......bbb.....', '......beb.....', '......bbb.....', '....mmmmm.....', '...m.mmm.m....', '..m..mmm..m...', '.....m..m.....', '....m....m....', '...m......m...'],
+};
+const PM_ANIMALS = {  // [silhouette, corps, marque]
+  'Baleine bleue': ['whale', '#3a6ab8', '#a8c8e8'], 'Baleine boréale': ['whale', '#3a4a6a', '#e8e8f0'], "Éléphant d'Afrique": ['trunk', '#8a8a92', '#6a6a72'], 'Éléphant': ['trunk', '#8a8a92', '#6a6a72'],
+  'Rhinocéros blanc': ['big', '#a8a8a0', '#8a8a82'], 'Hippopotame': ['big', '#8a6a7a', '#6a5060'], 'Girafe': ['neck', '#e8b04a', '#8a5a2a'], 'Vache': ['quad', '#ffffff', '#2a2a2a'], 'Cheval': ['quad', '#8a5a2a', '#8a5a2a'],
+  'Cheval au galop': ['quad', '#6a3a1a', '#6a3a1a'], 'Ours polaire': ['big', '#f0f0f0', '#d8d8d8'], 'Ours brun': ['big', '#7a4a2a', '#6a3a1a'], 'Grizzly': ['big', '#8a5a3a', '#7a4a2a'], 'Tigre': ['quad', '#ff8a2a', '#2a1a0a'],
+  'Lion': ['quad', '#d8a04a', '#a86a2a'], 'Gorille': ['ape', '#3a3a3a', '#5a5a5a'], 'Chimpanzé': ['ape', '#4a3a2a', '#c8a07a'], 'Autruche': ['bird', '#2a2a2a', '#e8b8a0'], 'Panda géant': ['big', '#ffffff', '#1a1a1a'],
+  'Kangourou roux': ['quad', '#c86a3a', '#c86a3a'], 'Loup': ['quad', '#8a8a92', '#6a6a72'], 'Manchot empereur': ['bird', '#1a1a2a', '#ffcf3a'], 'Renard': ['quad', '#e8742a', '#ffffff'], 'Chat': ['small', '#d8a060', '#a86a2a'],
+  'Chien': ['quad', '#c89060', '#8a5a2a'], 'Lapin': ['small', '#d8c8b8', '#ffb0b0'], 'Hérisson': ['small', '#7a5a3a', '#4a3a2a'], 'Souris': ['small', '#9a9aa2', '#ffb0b0'], 'Hamster': ['small', '#e8b070', '#ffffff'],
+  'Écureuil': ['small', '#c8642a', '#e8a060'], 'Faucon pèlerin (en piqué)': ['bird', '#5a6a8a', '#ffcf3a'], 'Guépard': ['quad', '#e8c060', '#2a1a0a'], "Antilope d'Amérique": ['quad', '#c8945a', '#ffffff'],
+  'Lièvre': ['small', '#a8885a', '#ffffff'], 'Zèbre': ['quad', '#ffffff', '#1a1a1a'], 'Usain Bolt': ['human', '#6a4028', '#ffcf3a'], 'Poule': ['bird', '#ffffff', '#ffb02a'], 'Tortue terrestre': ['shell', '#6a8a3a', '#8a6a3a'],
+  'Tortue des Galápagos': ['shell', '#5a6a3a', '#7a6a4a'], 'Paresseux': ['ape', '#a8886a', '#5a4a3a'], 'Escargot': ['snail', '#c8945a', '#a8a090'], 'Requin du Groenland': ['fish', '#5a6a7a', '#c8d0d8'], 'Ara': ['bird', '#ff3a2a', '#3a7ad8'],
+  'Abeille ouvrière': ['bee', '#ffcf3a', '#1a1a1a'],
+};
+function pmBeast(g, name) {
+  const [kind, body, mark] = PM_ANIMALS[name] || ['quad', '#8a7a6a', '#6a5a4a'], rows = PM_BEAST[kind], r = seeded(pmHash(name));
+  px(g, ['#a8d8a0', '#c8e0f0', '#e8d8b0'][kind === 'whale' || kind === 'fish' ? 1 : r() < .5 ? 0 : 2], 1, 1, 26, 16); if (kind === 'whale' || kind === 'fish') px(g, '#5a9ad8', 1, 1, 26, 16); else px(g, '#6aa85a', 1, 15, 26, 2);
+  rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const c = {b: body, m: mark, e: '#1a1018', w: '#e8f8ff'}[row[i]]; if (c) px(g, c, i * 2, j * 2 - 1, 2, 2); } });
+}
+// monuments : silhouettes de 14 x 9 (agrandies par 2) devant le ciel
+const PM_MONU = {
+  eiffel: ['......b.......', '......b.......', '.....bbb......', '.....b.b......', '....bbbbb.....', '....b...b.....', '...bb...bb....', '..bbbbbbbbb...', '.bb.......bb..'],
+  sky: ['......b.......', '......b.......', '.....bbb......', '.....bwb......', '.....bbb......', '.....bwb......', '....bbbbb.....', '....bwbwb.....', '....bbbbb.....'],
+  twin: ['...b....b.....', '...b....b.....', '..bbb..bbb....', '..bwb..bwb....', '..bbbbbbbb....', '..bwb..bwb....', '..bbb..bbb....', '..bwb..bwb....', '..bbb..bbb....'],
+  pyr: ['..............', '..............', '......bb......', '.....bbbb.....', '....bbbbbb....', '...bbbbbbbb...', '..bbbbbbbbbb..', '.bbbbbbbbbbbb.', 'bbbbbbbbbbbbbb'],
+  arch: ['..............', '..bbbbbbbbbb..', '..bwbwbwbwbb..', '..bbbbbbbbbb..', '..bbb....bbb..', '..bb......bb..', '..bb......bb..', '..bb......bb..', '..bb......bb..'],
+  dome: ['......b.......', '.....bbb......', '....bbbbb.....', '...bbbbbbb....', 'b..bbbbbbb..b.', 'b.bbbbbbbbb.b.', 'b.bbwbbbwbb.b.', 'bbbbwbbbwbbbb.', 'bbbbbbbbbbbbb.'],
+  statue: ['....w.........', '....b.........', '....bb........', '.....bb.......', '.....bbb......', '.....bbb......', '.....bbb......', '....bbbbb.....', '...bbbbbbb....'],
+  christ: ['......b.......', '.bbbbbbbbbbb..', '......b.......', '.....bbb......', '.....bbb......', '.....bbb......', '.....bbb......', '....bbbbb.....', '..bbbbbbbbb...'],
+  church: ['..bb....bb....', '..bb....bb....', '..bwb..bwb....', '..bbbbbbbb....', '..bbbbwbbb....', '..bbbwwwbb....', '..bbbwwwbb....', '..bbbwwwbb....', '..bbbbbbbb....'],
+  lean: ['.......bbb....', '......bwbw....', '......bbbb....', '.....bwbw.....', '.....bbbb.....', '....bwbw......', '....bbbb......', '...bwbw.......', '...bbbb.......'],
+  ring: ['..............', '..............', '..bbbbbbbbbb..', '.bwbwbwbwbwbb.', '.bbbbbbbbbbbb.', '.bwbwbwbwbwbb.', '.bbbbbbbbbbbb.', '.bwbwbwbwbwbb.', '.bbbbbbbbbbbb.'],
+  atom: ['......bb......', '......bb......', '..bb..b...bb..', '..bb.b.b..bb..', '.....bbbb.....', '..bb.b.b..bb..', '..bb..b...bb..', '......bb......', '.....bbbb.....'],
+  clock: ['......b.......', '.....bbb......', '.....bbb......', '.....bwb......', '.....bbb......', '.....bbb......', '.....bbb......', '.....bbb......', '....bbbbb.....'],
+  boy: ['..............', '..............', '..............', '......bb......', '......bb......', '.....bbbb.....', '......bb......', '.....bwwb.....', '....bbbbbb....'],
+};
+const PM_MONUS = {'Burj Khalifa': ['sky', '#a8b8c8'], 'Tokyo Skytree': ['sky', '#d8e0e8'], 'Tour CN': ['clock', '#c8c0b8'], 'Tours Petronas': ['twin', '#b8c0c8'], 'Empire State Building': ['sky', '#c8b898'], 'Tour Eiffel': ['eiffel', '#8a5a3a'],
+  'Tour Montparnasse': ['sky', '#3a3a4a'], 'Sagrada Família': ['church', '#c8a878'], 'Pyramide de Khéops': ['pyr', '#e0c080'], 'Atomium': ['atom', '#c8d0d8'], 'Big Ben': ['clock', '#c8a868'], 'Statue de la Liberté': ['statue', '#6ab8a0'],
+  'Taj Mahal': ['dome', '#f0f0f0'], 'Notre-Dame de Paris': ['church', '#c8c0a8'], 'Tour de Pise': ['lean', '#f0e8d8'], 'Arc de Triomphe': ['arch', '#e0d8c0'], 'Colisée': ['ring', '#d8a878'], 'Christ Rédempteur': ['christ', '#e8e8e0'],
+  'Manneken-Pis': ['boy', '#8a6a4a'], 'Beffroi de Lille': ['clock', '#b85a3a']};
+function pmMonument(g, name) {
+  const [kind, col] = PM_MONUS[name] || ['clock', '#a8a8a8'], rows = PM_MONU[kind], r = seeded(pmHash(name)), dusk = r() < .4;
+  px(g, dusk ? '#f0a87a' : '#8ac8f0', 1, 1, 26, 16); px(g, dusk ? '#d8786a' : '#b8e0f8', 1, 1, 26, 4); px(g, '#7a9a6a', 1, 16, 26, 1);
+  rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const c = {b: col, w: dusk ? '#ffe08a' : '#3a4a6a'}[row[i]]; if (c) px(g, row[i] === 'b' && i * 2 > 13 ? pmShade(col, .8) : c, i * 2, j * 2 - 1, 2, 2); } });
+}
+const pmPics = new Map();
+function pmPic(card) {
+  const k = card.cat + '|' + card.it[0]; let c = pmPics.get(k); if (c) return c;
+  c = el('canvas'); c.width = 28; c.height = 18; const g = c.getContext('2d');
+  px(g, '#1a1018', 0, 0, 28, 18);
+  const name = card.it[0], cat = card.cat, draw = {pays: pmFlag, superficie: pmFlag, montagnes: pmMountain, fleuves: pmRiver, astres: pmAstre, animaux: pmBeast, vitesse: pmBeast, longevite: pmBeast, monuments: pmMonument}[cat];
+  if (draw) { g.save(); g.beginPath(); g.rect(1, 1, 26, 16); g.clip(); draw(g, name); g.restore(); } else { px(g, '#2a2236', 1, 1, 26, 16); g.drawImage(PM_ICON[PM_CATS[cat].icon], 8, 3); }
+  pmPics.set(k, c); return c;
+}
 const pms = gstore('plusmoins', {games: 0, right: 0, cat: 'tout'});
 let pm = null, pmac = null;
 const pmFmt = v => v >= 1e6 ? (v / 1e6).toLocaleString('fr-FR', {maximumFractionDigits: 1}) + ' million' + (v >= 2e6 ? 's' : '') : v.toLocaleString('fr-FR', {maximumFractionDigits: v < 1 ? 2 : 1});
@@ -397,12 +556,12 @@ function pmUpdate() {
 function pmCard(g, card, x, y, shown, count, frame) {
   const w = 84, h = 104, cat = PM_CATS[card.cat];
   px(g, '#1a1018', x - 1, y - 1, w + 2, h + 2); px(g, frame || '#f0e8d8', x, y, w, h); px(g, '#2a2236', x + 2, y + 2, w - 4, h - 4); px(g, '#3a3046', x + 2, y + 2, w - 4, 1);
-  g.drawImage(PM_ICON[cat.icon], x + w / 2 - 6, y + 6);
-  pxFont(g, cat.name.toUpperCase(), x + w / 2, y + 28, '#a898b8', 8, 'center');
+  g.drawImage(pmPic(card), x + w / 2 - 14, y + 4);
+  pxFont(g, cat.name.toUpperCase(), x + w / 2, y + 32, '#a898b8', 8, 'center');
   const words = card.it[0].split(' '), lines = [''];
   for (const wd of words) { const t = (lines[lines.length - 1] + ' ' + wd).trim(); if (t.length > 13 && lines[lines.length - 1]) lines.push(wd); else lines[lines.length - 1] = t; }
-  lines.slice(0, 3).forEach((l, i) => pxFont(g, l, x + w / 2, y + 42 + i * 10, '#ffffff', 8, 'center'));
-  const vy = y + 78;
+  lines.slice(0, 3).forEach((l, i) => pxFont(g, l, x + w / 2, y + 45 + i * 10, '#ffffff', 8, 'center'));
+  const vy = y + 80;
   if (shown) { const v = cat.years ? String(Math.round(card.it[1] * count)) : pmFmt(count >= 1 ? card.it[1] : +(card.it[1] * count).toPrecision(3)); pxFont(g, v, x + w / 2, vy, '#ffd84a', v.length > 9 ? 8 : 12, 'center'); pxFont(g, cat.years ? '' : cat.unit.replace(/^millions? /, ''), x + w / 2, vy + 12, '#a898b8', 8, 'center'); }
   else pxFont(g, '?', x + w / 2, vy + 2, '#5a4e6a', 16, 'center');
 }
@@ -420,12 +579,16 @@ function pmDraw() {
       for (const [dir, label, by] of [[1, '↑ PLUS', HUD + 118], [-1, '↓ MOINS', HUD + 132]]) { const hot = pm.hover === dir; px(g, '#1a1018', 99, by - 1, 86, 13); px(g, hot ? '#ffd84a' : '#3a3046', 100, by, 84, 11); pxFont(g, label, 142, by + 9, hot ? '#1a1018' : '#ffffff', 8, 'center'); }
       pxFont(g, PM_CATS[pm.left.cat].ask + ' ?', 50, HUD + 128, '#a898b8', 8, 'center');
     }
-    if (pm.slide === 0 && pm.reveal) pxFont(g, pm.ok ? (pm.right.it[1] > pm.left.it[1] ? 'PLUS !' : 'MOINS !') : 'RATÉ !', 142, HUD + 128, pm.ok ? '#7ee07a' : '#ff4a3a', 12, 'center');
+    if (pm.slide === 0 && pm.reveal && !(pm.mode === 'over' && pm.dead > 70)) pxFont(g, pm.ok ? (pm.right.it[1] > pm.left.it[1] ? 'PLUS !' : 'MOINS !') : 'RATÉ !', 142, HUD + 128, pm.ok ? '#7ee07a' : '#ff4a3a', 12, 'center');
   }
   for (const p of pm.pops) pxFont(g, p.text, p.x, p.y, '#7ee07a', 12, 'center');
   px(g, '#0e0a12', 0, 0, W, HUD);
   pxFont(g, 'Série ' + pm.streak, 4, 9, '#ffffff', 8); pxFont(g, pm.cat === 'tout' ? 'Tout mélangé' : PM_CATS[pm.cat].name, W - 4, 9, '#a898b8', 8, 'right');
-  if (pm.mode === 'over' && pm.dead > 70) gameText(g, W, [['PERDU !', '#ff4a3a', 12], ['Série de ' + pm.streak, '#ffffff'], [pm.record ? 'NOUVEAU RECORD !' : 'Record ' + (games.best['plusmoins-' + pm.cat] || 0), '#ffd84a'], [pm.dead > 90 ? 'Espace : rejouer' : '', '#b8b0c8']], 60);
+  if (pm.mode === 'over' && pm.dead > 70) {
+    const y = PM.HUD + 116; px(g, '#1a1018', 3, y, W - 6, H - y - 2); px(g, '#ff4a3a', 4, y + 1, W - 8, 1); px(g, '#241a2e', 4, y + 2, W - 8, H - y - 5);
+    pxFont(g, 'PERDU ! Série de ' + pm.streak, W / 2, y + 13, '#ff6a5a', 8, 'center');
+    pxFont(g, (pm.record ? 'NOUVEAU RECORD !' : 'Record ' + (games.best['plusmoins-' + pm.cat] || 0)) + (pm.dead > 90 ? ' · Espace : rejouer' : ''), W / 2, y + 25, pm.record ? '#ffd84a' : '#b8b0c8', 8, 'center');
+  }
   if (pm.tick % 20 === 0 && pm.left) g.canvas.setAttribute('aria-label', 'Plus ou Moins : ' + (pm.mode === 'over' ? 'perdu, série de ' + pm.streak : 'série de ' + pm.streak + '. ' + pm.left.it[0] + ' : ' + pmFmt(pm.left.it[1]) + ' ' + PM_CATS[pm.left.cat].unit + '. ' + pm.right.it[0] + ' : plus ou moins ?'));
 }
 function pmInfo() {
@@ -449,11 +612,16 @@ document.addEventListener('keydown', e => {
   cv.onpointerleave = () => { if (pm) pm.hover = 0; };
   cv.onpointerdown = e => { e.preventDefault(); if (!pm) return; if (pm.mode === 'over') { if (pm.dead > 90) pmNew(pm.cat); return; } const d = btn(at(e)); if (d) pmGuess(d); }; }
 $('pmNew').onclick = () => { pmNew(pm?.cat || pms.cat); $('pmNew').blur(); };
+$('pmFs').onclick = () => { $('pmFs').blur(); try { document.fullscreenElement ? document.exitFullscreen() : $('pmCanvas').parentElement.requestFullscreen?.().catch(() => {}); } catch {} };
+$('pmCanvas').__pm = {st: () => pm, pic: c => pmPic(c), cats: PM_CATS};
 {  // vérification : chaque catégorie a assez de cartes, pas de doublon, et une partie de 200 cartes ne propose que des paires jouables (jamais d'égalité)
   let ok = true; const bad = [];
   for (const [k, c] of Object.entries(PM_CATS)) { if (c.items.length < 15 || new Set(c.items.map(i => i[0])).size !== c.items.length) { ok = false; bad.push(k); } }
   const keep = pm; pm = null;
   for (const cat of ['tout', ...Object.keys(PM_CATS)]) { pmNew(cat); for (let i = 0; i < 200; i++) { if (!pm.right || !pmPlayable(pm.left.cat, pm.left.it, pm.right.it) || pm.left.it[1] === pm.right.it[1]) { ok = false; bad.push(cat + ' ' + i); break; } pm.left = pm.right; pm.right = pmDraw1(pm.left); } }
+  // chaque pays a son drapeau, chaque animal sa silhouette, chaque monument et chaque astre son dessin
+  for (const [cat, table] of [['pays', PM_FLAGS], ['superficie', PM_FLAGS], ['animaux', PM_ANIMALS], ['vitesse', PM_ANIMALS], ['longevite', PM_ANIMALS], ['monuments', PM_MONUS], ['astres', PM_ASTRES]])
+    for (const [name] of PM_CATS[cat].items) if (!table[name]) { ok = false; bad.push('image : ' + name); }
   console.assert(ok, 'plusmoins', bad);
   pm = keep;
 }

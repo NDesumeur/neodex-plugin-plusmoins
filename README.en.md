@@ -17,6 +17,16 @@ A pixel art trivia game: the left card shows its number, and you guess whether t
 - **All mixed** changes category every 5 right answers.
 - Two cards that are too close never come up together: there is always a real difference.
 
+## The cards
+
+Each card has its small pixel-art picture: the country's **flag**, the **mountain**'s outline (with its crater for volcanoes), the winding **river**, the **animal**, the **monument** or the **celestial body**. The other categories keep their icon. The picture never gives away the answer.
+
+When the game is lost, the result shows in a strip under the cards: both cards and their values stay readable.
+
+## Full screen
+
+The **Full screen** button fills the whole screen with the cards (Escape to leave). Otherwise the game takes all the height the window leaves.
+
 ## Stats
 
 The Bests panel keeps your **best streak** in each category, the number of **games** and **right answers**.
