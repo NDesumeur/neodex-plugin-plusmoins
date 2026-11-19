@@ -260,7 +260,6 @@
  "RATÉ !": "WRONG!",
  "RECORDS": "BESTS",
  "Record": "Best",
- "Record.": "Best.",
  "Reims": "Reims",
  "Renard": "Fox",
  "Rennes": "Rennes",
@@ -374,5 +373,6 @@
  "↑ ou clic sur PLUS, ↓ ou clic sur MOINS": "↑ or click HIGHER, ↓ or click LOWER",
  "↓ MOINS": "↓ LOWER",
  "PERDU ! Série de": "LOST! Streak of",
- "· Espace : rejouer": "· Space: play again"
+ "· Espace : rejouer": "· Space: play again",
+ "Rien n'est synchronisé : tes records restent sur cet appareil.": "Nothing is synced: your records stay on this device."
 }
