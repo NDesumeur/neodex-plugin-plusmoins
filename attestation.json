@@ -1,9 +1,9 @@
 {
   "pluginId": "neodex.plusmoins",
   "repo": "NDesumeur/neodex-plugin-plusmoins",
-  "version": "1.2.2",
-  "sha256": "514f226f3b37709adc34105f46c9a57beb7e60dd10fabafa7486256f811e5e9b",
-  "approvedAt": "2026-11-19T23:26:39.798Z",
+  "version": "1.3.0",
+  "sha256": "cf4652b10b792fb70ce266920cb811d7871dc53e14e45d13c31373f21cae1654",
+  "approvedAt": "2026-11-24T15:56:19.385Z",
   "neobase": ">=4.0.0",
-  "signature": "MSvrUyIZyo7O4Xs3DTwoWZKVzGH81G2yTJoeud0JSJ53eGvMWAEP5z1zaWIiKr1KKEFfTx9idnGdLXJ2gjdHAw=="
+  "signature": "lnuINiEvo0n7TqzOiJkx+JA55q/bitjj3zH5+oG611oTi25fUiOhVx2ZyzBP9jxOp3Q03GTOKNzoRI/Z40f+AQ=="
 }
