@@ -23,6 +23,7 @@ module.exports = async ({ pj, sleep }) => {
   await pair(); const first = await label();
   if (process.env.NEO_SHOTS) { await shot('2-suite'); const m = await pair(); await key(vals[m[2]] > vals[m[1]] ? 'ArrowDown' : 'ArrowUp'); await sleep(2200); await shot('3-perdu'); }
   if (!/série de 3/.test(first)) throw new Error('série attendue à 3 : « ' + first + ' »');
+  const sh = await pj("document.getElementById('pmCanvas').__pm.share()"); if (!/^Plus ou Moins .NeoDex. · .+ : (série de|record) [0-9]+/.test(sh)) throw new Error('partage : ' + sh);
   await cat('tout');
   // la planche de toutes les petites images (une ligne par catégorie), le plein écran et la place prise
   if (process.env.NEO_SHOTS) {

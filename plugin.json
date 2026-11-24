@@ -1,16 +1,19 @@
 {
   "id": "neodex.plusmoins",
   "name": "Plus ou Moins",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "author": "NDesumeur",
-  "description": "Jeu de culture : la carte de gauche montre son chiffre, devine si celle de droite est plus haute ou plus basse. Quatorze catégories de vrais chiffres arrondis : population et superficie des pays, altitude des montagnes, longueur des fleuves, poids, vitesse et longévité des animaux, hauteur des monuments, taille des astres, année des inventions, habitants des villes de France, calories des aliments, naissance de personnages célèbres et sortie des jeux vidéo. Ou tout mélangé. Meilleure série par catégorie. Une petite image en pixel art sur chaque carte (drapeaux, montagnes, fleuves, animaux, monuments, astres), écran de fin dans un bandeau sous les cartes, plein écran et jeu à la taille de l'écran.",
+  "description": "Jeu de culture : la carte de gauche montre son chiffre, devine si celle de droite est plus haute ou plus basse. Quatorze catégories de vrais chiffres arrondis : population et superficie des pays, altitude des montagnes, longueur des fleuves, poids, vitesse et longévité des animaux, hauteur des monuments, taille des astres, année des inventions, habitants des villes de France, calories des aliments, naissance de personnages célèbres et sortie des jeux vidéo. Ou tout mélangé. Meilleure série par catégorie. Une petite image en pixel art sur chaque carte (drapeaux, montagnes, fleuves, animaux, monuments, astres), écran de fin dans un bandeau sous les cartes, plein écran et jeu à la taille de l'écran. Jeu de culture : la carte de gauche montre son chiffre, devine si celle de droite est plus haute ou plus basse. Vingt catégories de vrais chiffres et le score à partager.",
   "icon": "icon.png",
   "entry": "index.js",
   "view": "plusmoins",
   "neobase": ">=4.0.0",
   "type": "app",
   "category": "Jeux",
-  "compatibility": ["windows", "linux"],
+  "compatibility": [
+    "windows",
+    "linux"
+  ],
   "syncMode": "aucune",
   "syncInfo": "Rien n'est synchronisé : tes records restent sur cet appareil.",
   "mobile": false,

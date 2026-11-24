@@ -4,6 +4,10 @@ A pixel art trivia game: the left card shows its number, and you guess whether t
 
 *Version française : [README.md](README.md)*
 
+## Six categories and sharing (new in 1.3.0)
+
+Six new categories (buildings, history, languages, lakes, waterfalls, départements) and a SHARE button that copies your score.
+
 ## Controls
 
 - **↑** or **click HIGHER**: the right card is higher.
@@ -13,9 +17,10 @@ A pixel art trivia game: the left card shows its number, and you guess whether t
 ## How it works
 
 - A right answer moves the right card to the left and a new one comes in. A mistake ends the streak.
-- **Fourteen categories** of real rounded numbers: population and area of countries, height of mountains, length of rivers, weight, speed and lifespan of animals, height of monuments, size of celestial bodies, year of inventions, population of French cities, calories in foods, birth year of famous people and release year of video games.
+- **Twenty categories** of real rounded numbers: population and area of countries, height of mountains, length of rivers, weight, speed and lifespan of animals, height of monuments, size of celestial bodies, year of inventions, population of French cities, calories in foods, birth year of famous people, release year of video games, year built of great buildings, dates in history, speakers of languages, depth of lakes, height of waterfalls and population of French départements.
 - **All mixed** changes category every 5 right answers.
 - Two cards that are too close never come up together: there is always a real difference.
+- **SHARE** copies your score (category, streak and answers as arrows, no names) to paste anywhere.
 
 ## The cards
 
