@@ -299,6 +299,9 @@ export default async function (ctx) {
   const best = (k, v) => { const b = games.best[k]; if (v > (b ?? 0)) {  // un score nul n'est jamais un record
     games.best[k] = v; saveGames(); return true; } return false; };
   const gstore = (k, init) => (games[k] ??= init);
+  // les trophées de NeoDex (3.4.8 et plus) : succès et records déclarés dans plugin.json ; sur un NeoDex plus ancien, rien ne se passe
+  const trophy = id => { ctx.games?.unlock(id).catch(() => {}); };
+  const trophyRecord = (id, v) => { if (v != null && Number.isFinite(+v)) ctx.games?.record(id, +v).catch(() => {}); };
 function gameLoop(st, appKey, update, draw) {
   cancelAnimationFrame(st.raf);
   const STEP = 1000 / 60; let acc = 0, last = performance.now();
@@ -598,6 +601,7 @@ function pmDraw() {
   if (pm.tick % 20 === 0 && pm.left) g.canvas.setAttribute('aria-label', 'Plus ou Moins : ' + (pm.mode === 'over' ? 'perdu, série de ' + pm.streak : 'série de ' + pm.streak + '. ' + pm.left.it[0] + ' : ' + pmFmt(pm.left.it[1]) + ' ' + PM_CATS[pm.left.cat].unit + '. ' + pm.right.it[0] + ' : plus ou moins ?'));
 }
 function pmInfo() {
+  setTimeout(pmTrophies);
   $('pmStats').replaceChildren(...[['Meilleure série', games.best.plusmoins || 0], ['Dans cette catégorie', games.best['plusmoins-' + (pm?.cat || pms.cat)] || 0], ['Parties', pms.games], ['Bonnes réponses', pms.right]].flatMap(([a, b]) => [el('span', '', a), el('b', '', String(b))]));
   pmCatRow?.querySelectorAll('button').forEach(b => b.classList.toggle('main', b.dataset.cat === (pm?.cat || pms.cat)));
 }
@@ -634,6 +638,13 @@ $('pmCanvas').__pm = {st: () => pm, pic: c => pmPic(c), cats: PM_CATS, share: ()
     for (const [name] of PM_CATS[cat].items) if (!table[name]) { ok = false; bad.push('image : ' + name); }
   console.assert(ok, 'plusmoins', bad);
   pm = keep;
+}
+// les trophées, tirés des statistiques et des records gardés (aussi à l'ouverture : ce qui a été fait avant compte)
+function pmTrophies() {
+  const b = games.best.plusmoins || 0, cats = Object.keys(PM_CATS).filter(k => games.best['plusmoins-' + k] >= 5).length, sig = [b, pms.games, pms.right, cats].join(); if (sig === pmTrophies.sig) return; pmTrophies.sig = sig;
+  trophyRecord('serie', b || null); trophyRecord('bonnes', pms.right || null);
+  if (pms.games >= 1) trophy('premier'); if (b >= 10) trophy('serie10'); if (b >= 25) trophy('serie25'); if (b >= 50) trophy('serie50');
+  if (pms.right >= 500) trophy('cinq-cents'); if (cats >= 5) trophy('categories');
 }
 ctx.onOpen(() => {
   if (!pm || !pm.g) { pmNew(); pm.g = $('pmCanvas').getContext('2d'); }

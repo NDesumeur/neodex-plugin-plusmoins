@@ -1,7 +1,7 @@
 {
   "id": "neodex.plusmoins",
   "name": "Plus ou Moins",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": "NDesumeur",
   "description": "Jeu de culture : la carte de gauche montre son chiffre, devine si celle de droite est plus haute ou plus basse. Quatorze catégories de vrais chiffres arrondis : population et superficie des pays, altitude des montagnes, longueur des fleuves, poids, vitesse et longévité des animaux, hauteur des monuments, taille des astres, année des inventions, habitants des villes de France, calories des aliments, naissance de personnages célèbres et sortie des jeux vidéo. Ou tout mélangé. Meilleure série par catégorie. Une petite image en pixel art sur chaque carte (drapeaux, montagnes, fleuves, animaux, monuments, astres), écran de fin dans un bandeau sous les cartes, plein écran et jeu à la taille de l'écran. Jeu de culture : la carte de gauche montre son chiffre, devine si celle de droite est plus haute ou plus basse. Vingt catégories de vrais chiffres et le score à partager.",
   "icon": "icon.png",
@@ -22,5 +22,52 @@
   "sdk": "2.1.0",
   "permissions": [
     "storage"
+  ],
+  "succes": [
+    {
+      "id": "premier",
+      "nom": "Plus ou moins ?",
+      "texte": "Finir une première partie"
+    },
+    {
+      "id": "serie10",
+      "nom": "Bon flair",
+      "texte": "Faire une série de 10 bonnes réponses"
+    },
+    {
+      "id": "serie25",
+      "nom": "Puits de science",
+      "texte": "Faire une série de 25 bonnes réponses"
+    },
+    {
+      "id": "serie50",
+      "nom": "Tout savoir",
+      "texte": "Faire une série de 50 bonnes réponses",
+      "cache": true
+    },
+    {
+      "id": "cinq-cents",
+      "nom": "Culture générale",
+      "texte": "Donner 500 bonnes réponses en tout"
+    },
+    {
+      "id": "categories",
+      "nom": "Curieux de tout",
+      "texte": "Faire une série d'au moins 5 dans 5 catégories"
+    }
+  ],
+  "records": [
+    {
+      "id": "serie",
+      "nom": "Meilleure série",
+      "sens": "haut",
+      "format": "nombre"
+    },
+    {
+      "id": "bonnes",
+      "nom": "Bonnes réponses",
+      "sens": "haut",
+      "format": "nombre"
+    }
   ]
 }
